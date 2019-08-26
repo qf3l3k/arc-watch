@@ -1,0 +1,11 @@
+---
+- name: Recycle ARC Masternode
+  hosts: all
+  remote_user: root
+  sudo: yes
+  tasks:
+     - name: Transfer the script
+       copy: src=arc_chain_reset.sh dest=/root mode=0777
+
+     - name: Execute the script
+       command: sh /root/arc_chain_reset.sh
