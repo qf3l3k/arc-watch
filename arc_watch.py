@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 
 # Print table with loaded data
 # Status color coding:
@@ -17,27 +17,15 @@
 import os
 import logging
 import argparse
-import configparser
 from collections import OrderedDict
 from json import JSONDecoder
 from prettytable import PrettyTable
 from modules import color_terminal
-
-data_acquire_command = "arcticcoin-cli -rpcconnect=192.168.101.11 -rpcuser=rpcuser -rpcpassword=abc123 " \
-                       "goldminenode list-conf"
-start_node_command = "arcticcoin-cli -rpcconnect=192.168.101.11 -rpcuser=rpcuser -rpcpassword=abc123 " \
-                       "goldminenode start-alias {}"
-recycle_node_command = "ansible-playbook -i '{},' /full/path/to/playbook/arc_chain_reset.yaml"
-
-# data_acquire_command = ""
-# start_node_command = ""
-# recycle_node_command = ""
+from modules import config
 
 
-config_file = "{}/config/arc_watch.conf"
-
-
-logging.basicConfig(filename='logs/arc_watch.log', filemode='a',
+logging.basicConfig(filename='{}{}'.format(config.log_path, config.log_file),
+                    filemode='a',
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
                     level=logging.INFO)
 
@@ -58,12 +46,11 @@ def parse_object_pairs(pairs):
         if key in dct:
             key = make_unique(key, dct)
         dct[key] = value
-
     return dct
 
 
-def read_parse_data():
-    data = os.popen(data_acquire_command).read()
+def read_parse_data(data_source_command):
+    data = os.popen(data_source_command).read()
 
     decoder = JSONDecoder(object_pairs_hook=parse_object_pairs)
     obj = decoder.decode(data)
@@ -119,11 +106,16 @@ def process_node(node_name, node_status):
     command = ""
 
     if node_status == "EXPIRED":
-        command = recycle_node_command.format(node_name)
-
+        command = "ansible-playbook -i '{},' {}{}".format(node_name,
+                                                          config.playbook_path,
+                                                          config.playbook_file)
     elif node_status == "NEW_START_REQUIRED":
-        command = start_node_command.format(node_name)
-
+        command = "{} -rpcconnect={} -rpcuser={} -rpcpassword={} {} {}".format(config.mn_cli,
+                                                                               config.host,
+                                                                               config.rpcuser,
+                                                                               config.rpcpassword,
+                                                                               config.mn_start,
+                                                                               node_name)
     return command
 
 
@@ -141,31 +133,6 @@ def fix_nodes(parsed_data):
     return command
 
 
-def read_config():
-    # TODO: Read and parse arc_watch config file
-
-    config_file_location = config_file.format(os.getcwd())
-
-    config = configparser.ConfigParser()
-    config.read(config_file_location)
-
-    print("Config file: {}".format(config_file_location))
-
-    data_acquire_command = config.get("node", "data_acquire_command")
-    start_node_command = config.get("node", "start_node_command")
-    recycle_node_command = config.get("node", "recycle_node_command")
-
-    print("Data acquire: {}".format(data_acquire_command))
-    print("\n")
-    print("Start node: {}".format(start_node_command))
-    print("\n")
-    print("Recycle: {}".format(recycle_node_command))
-    print("\n")
-    print("Done.")
-
-    return 1
-
-
 def main():
     cmdparser = argparse.ArgumentParser()
     cmdparser.version = "0.2"
@@ -175,17 +142,20 @@ def main():
     cmdparser.add_argument("-v", "--version",  action="version")
     args = cmdparser.parse_args()
 
-    nodes_data = read_parse_data()
+    data_acquire_command = "{} -rpcconnect={} -rpcuser={} -rpcpassword={} {}".format(config.mn_cli,
+                                                                                     config.host,
+                                                                                     config.rpcuser,
+                                                                                     config.rpcpassword,
+                                                                                     config.mn_list)
+
+    nodes_data = read_parse_data(data_acquire_command)
 
     if args.dashboard:
-        logging.info("Started in dashboard mode.")
         print_status_table(nodes_data)
 
     elif args.fix:
+        logging.info("Started in fix mode.")
         fix_nodes(nodes_data)
-
-    elif args.test:
-        read_config()
 
 
 main()
