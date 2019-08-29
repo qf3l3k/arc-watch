@@ -5,17 +5,13 @@ Regardless situation it takes time to logon to identify situation and take aprop
 So, better way would be to automate process of detecting what happened to masternode and react accordingly.
 That has been main driver for that Python script.
 
----
 ## Requirements
 * ARC wallet with masternodes configuration and RPC enabled
 * Ansible (for future functionality to allow node reset)
----
 ## Installation
 
----
 ## Features
 
----
 ## Usage
 
 To display dashboard with nodes details:
@@ -31,7 +27,7 @@ python arc_watch.py -f
 That will result in table similar to one below
 
 ```text
-Every 5.0s: python arc_watch.py 
+Every 5.0s: python arc_watch.py
 
 +-------------+---------------------+---------+--------+---------+
 |    alias    |       address       |  status | action | command |
@@ -46,7 +42,6 @@ Every 5.0s: python arc_watch.py
 
 Number of nodes displayed depends on details received from ARC wallet via RPC.
 
----
 ## Configuration
 Configuration details for script to run are located in:
 ```bash
@@ -66,9 +61,7 @@ playbook_file="arc_chain_reset.yaml"
 playbook_path="/home/qf3l3k/automation/crypto-automation/"
 ```
 
----
 ## Release History
 
----
 ## Meta
 
