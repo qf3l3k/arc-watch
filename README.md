@@ -15,7 +15,15 @@ That has been main driver for that Python script.
 
 ## Usage
 
+arc_watch operates in 2 modes:
+ - dashboard
+ - fix
+
+
+### Display nodes status
+
 To display dashboard with nodes details:
+
 ```bash
 python arc_watch.py -d
 ```
@@ -23,8 +31,6 @@ python arc_watch.py -d
 That will display table similar to one below
 
 ```text
-Every 5.0s: python arc_watch.py
-
 +-------------+---------------------+---------+--------+---------+
 |    alias    |       address       |  status | action | command |
 +-------------+---------------------+---------+--------+---------+
@@ -35,8 +41,9 @@ Every 5.0s: python arc_watch.py
 |    node05   |   XX.XX.XX.XX:7209  | ENABLED |  None  |         |
 +-------------+---------------------+---------+--------+---------+
 ```
-** *NOTE:* ** *Number of nodes displayed depends on details received from ARC wallet via RPC.*
+**NOTE:** *Number of nodes displayed depends on details received from ARC wallet via RPC.*
 
+### Fix nodes
 
 To run fixing process and reset or restart nodes:
 ```bash
@@ -60,7 +67,7 @@ Configuration details for script to run are located in:
 modules/configu.py
 ```
 Variables in configuration:
-```editorconfig
+```bash
 mn_cli="/usr/local/bin/arcticcoin-cli"
 host="192.168.248.111"
 rpcuser="arcticrpc"
@@ -76,4 +83,3 @@ playbook_path="/home/qf3l3k/automation/crypto-automation/"
 ## Release History
 
 ## Meta
-
