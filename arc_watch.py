@@ -1,17 +1,31 @@
-#!/usr/bin/python
+#!/usr/bin/env python3
 
-# Print table with loaded data
-# Status color coding:
-#  - GREEN = ENABLED
-#  - YELLOW = PRE_ENABLED
-#  - RED = EXPIRED
-#  - RED = NEW_START_REQUIRED
-#  - BLUE = Other status not listed above
+"""
+Script connects to ARC coin wallet via rpc and pulls data about masternodes and their status.
+First function script provides is to display acquired data with color coded masternode status.
 
-# Remediate RED status
-#  - EXPIRED - recycle ARC blockchain
-#  - NEW_START_REQUIRED - recycle ARC blockchain and start alias
-# Remediation might be done from python or by triggering Ansible playbook
+Status color coding:
+ - GREEN = ENABLED
+ - YELLOW = PRE_ENABLED
+ - RED = EXPIRED
+ - RED = NEW_START_REQUIRED
+ - BLUE = Other status not listed above
+
+Once some nodes are identified as not properly working script can take action to fix that.
+
+Actions to fix RED status
+ - EXPIRED - recycle ARC blockchain
+ - NEW_START_REQUIRED - recycle ARC blockchain and start alias
+
+Recycle ARC blockchain means that Ansible playbook will be triggered, which will:
+ - stop masternode
+ - remove existing blockchain data
+ - unpack properly working blockchain data
+ - start masternode
+
+This has to be done due to nature of ARC coin blockchain, which tends to stuck for no reason.
+Best way to fix it is re-sync node, but full re-sync would take too long, so pre-loaded blockchain data does the job.
+"""
 
 
 import os
@@ -59,6 +73,15 @@ def read_parse_data(data_source_command):
 
 
 def print_status_table(parsed_data):
+    """
+    Displays table with masternodes status information.
+
+    Args:
+        :param parsed_data: contains masternode details pulled from remote ARC wallet via RPC.
+
+    Returns:
+        :return: Nothing is returned.
+    """
     command = ""
 
     node_table = PrettyTable()
@@ -103,6 +126,18 @@ def print_status_table(parsed_data):
 
 
 def process_node(node_name, node_status):
+    """
+    Composes command-line syntax to be executed in order to remediate faulty masternode.
+
+    Args:
+        :param node_name: name of masternode as listed in ARC wallet
+
+        :param node_status: status of masternode, so apropriate command-line syntax will be created.
+
+    Returns:
+        :return: command-line syntax, which has to be executed in order to fix masternode.
+    """
+
     command = ""
 
     if node_status == "EXPIRED":
@@ -120,6 +155,16 @@ def process_node(node_name, node_status):
 
 
 def fix_nodes(parsed_data):
+    """
+    Executes command-line syntax prepared by process_node function.
+
+    Args:
+        :param parsed_data: contains information about masternodes.
+
+    Returns:
+        :return: last executed fixing command.
+    """
+
     command = ""
 
     for key, value in parsed_data.items():
@@ -134,6 +179,13 @@ def fix_nodes(parsed_data):
 
 
 def main():
+    """
+    Main function runs appropriate action depends on passed parameters.
+
+    Returns:
+        :return: nothing is returned from main function.
+    """
+
     cmdparser = argparse.ArgumentParser()
     cmdparser.version = "0.2"
     cmdparser.add_argument("-d", "--dashboard", help="displays nodes status", action="store_true")
